@@ -1,0 +1,274 @@
+
+{% extends "base.html" %}
+{% block style %}
+       
+        .card {
+            background-color: #0A4B61;
+        }
+        .btn-add {
+            background-color: #0AA24C;
+            color: #fff;
+        }
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #0D5974;
+        }
+        .filter-section {
+            background-color: #004d67; /* Same theme as the main UI */
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .filter-section h4 {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+        
+        .checkbox-group label {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .checkbox-group input {
+            margin-right: 8px;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        .transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 16px;
+            text-align: left;
+            background-color: #005673;
+            color: white;
+        }
+        
+        .transaction-table th,
+        .transaction-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .transaction-table th {
+            background-color: #004d67;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .transaction-table .actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .edit-btn,
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+        
+        .edit-btn:hover {
+            background-color: #007bff;
+        }
+        
+        .delete-btn:hover {
+            background-color: #dc3545;
+        }
+        
+        .edit-btn i,
+        .delete-btn i {
+            pointer-events: none; /* To ensure icons don't interfere with button click */
+        }
+        
+        .icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; /* Adjust spacing between icons */
+            margin-top: 10px; /* Add spacing if needed */
+        }
+        
+        .icon {
+            height: 50px;
+            width: 50px;
+            cursor: pointer;
+        }
+        
+        .download-icon {
+            height: 40px; /* Adjust height */
+            width: 40px; /* Adjust width */
+        }
+        
+        .plus-icon {
+            height: 50px; /* Adjust height */
+            width: 50px; /* Adjust width */
+        }
+        
+        
+        
+        {% endblock %}
+        {% block body %}
+    <!-- Navbar -->
+
+
+    <div class="container mt-5">
+        <!-- Totals Section -->
+        <div class="row text-center mb-4">
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>Total Income</h5>
+                    <h3>{{total_income}}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>Total Expenses</h5>
+                    <h3>{{total_expense}}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>Net Income</h5>
+                    <h3 class="text-success">{{net_income}}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Transactions Section -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card p-3">
+                    <h5>Filters</h5>
+                    <form method='POST'>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="type"  class="form-label">Type:</label>
+                            <select id="type"  name='type' class="form-select">
+                                <option {%if filter_type == 'Any'%}selected {%endif%}>Any</option>
+                                <option  {% if filter_type == 'Income' %} selected {%endif%}>Income</option>
+                                <option {% if filter_type == 'Expense' %} selected {%endif%}>Expense</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dateFrom"  class="form-label">Date From:</label>
+                            <input type="date" value={{filter_date_from}}  name='date_from' id="dateFrom" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="dateTo" class="form-label">Date To:</label>
+                            <input type="date" value={{filter_date_to}}  name='date_to' id="dateTo" class="form-control">
+                        </div>
+                        <div class="filter-section">
+                            <h4>Filter by Category</h4>
+                           
+                                <div class="checkbox-group">
+                                    <label><input {% if 'Bills' in filter_category %}checked{% endif %}  type="checkbox" name="category" value="Bills"> Bills</label>
+                                    <label><input {% if 'Food' in filter_category %}checked{% endif %} type="checkbox" name="category" value="Food"> Food</label>
+                                    <label><input {% if 'Clothes' in filter_category %}checked{% endif %} type="checkbox" name="category" value="Clothes"> Clothes</label>
+                                    <label><input {% if 'Medical' in filter_category %}checked{% endif %} type="checkbox" name="category" value="Medical"> Medical</label>
+                                    <label><input {% if 'Housing' in filter_category %}checked{% endif %} type="checkbox" name="category" value="Housing"> Housing</label>
+                                    <label><input {% if 'Salary' in filter_category %}checked{% endif %} type="checkbox" name="category" value="Salary"> Salary</label>
+                                    <label><input {% if 'Social' in filter_category %}checked{% endif %} type="checkbox" name="category" value="Social"> Social</label>
+                                    <label><input {% if 'Transport' in filter_category %}checked{% endif %} type="checkbox" name="category" value="Transport"> Transport</label>
+                                    <label><input {% if 'Vacation' in filter_category %}checked{% endif %} type="checkbox" name="category" value="Vacation"> Vacation</label>
+                                    <label><input {% if 'Random' in filter_category %}checked{% endif %} type="checkbox" name="category" value="Random"> Random</label>
+                                </div>
+                                <button type="submit" class="btn btn-success">Filter</button>
+                           
+                        </div>
+                        
+                        
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Transactions</h5>
+                    {% for msg in messages %}
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <strong>Hey!</strong> {{msg}}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                    {% endfor %}
+                    <div class="icon-container">
+                        <!-- Download Icon -->
+                        <a href="{% url 'download_expense' %}">
+                            <img src="https://cdn.pixabay.com/photo/2016/12/18/13/45/download-1915753_1280.png" class="icon download-icon" alt="Download">
+                        </a>
+                        <!-- Plus Icon -->
+                        <a href="{% url 'add_trans'%}"><button class="btn btn-add">+</button></a>
+                    </div>
+                    
+                </div>
+                <table class="transaction-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    
+                    
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction.transaction_date }}</td>
+                            <td>{{ transaction.category }}</td>
+                            <td>{{ transaction.transactions_type }}</td>
+                            <td>Rs. {{ transaction.amount }}</td>
+                            <td class="actions">
+                                <a href="">
+                                <button class="edit-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                </a>
+                                <a href="{% url 'delete_trans' transaction.id %}">
+                                <button class="delete-btn">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    
+                </table>
+                
+            </div>
+        </div>
+    </div>
+
+  
+    {% endblock %}

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block style %}
+#financeBarChart {
+    max-width: 500px; /* Set max width */
+    height: auto;    /* Auto adjust height */
+    margin: auto;    /* Center the chart */
+}
+#expensePieChart {
+    max-width: 500px; /* Set max width */
+    height: auto;     /* Auto adjust height */
+    margin: auto;     /* Center the chart */
+}
+{% endblock %}
+
+{% block body %}
+    <!-- Bar Chart -->
+     <h1>Income Vs Expenditure</h1>
+    <canvas id="financeBarChart" width="300" height="300"></canvas>
+
+    <script>
+        // Pass data from Django context
+        const categories = {{ categories|safe }};
+        const incomeData = {{ income|safe }};
+        const expenseData = {{ expense|safe }};
+       
+
+        // Setup Chart.js for the Bar chart
+        const barChartCtx = document.getElementById('financeBarChart').getContext('2d');
+        new Chart(barChartCtx, {
+            type: 'bar',
+            data: {
+                labels: categories,
+                datasets: [{
+                    label: 'Income VS Expense',
+                    data: incomeData.concat(expenseData),  // Combined data for both income and expense
+                    backgroundColor: 'rgba(78, 135, 242, 0.8)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    </script>
+
+    <br><br><br>
+    <hr>
+    <!-- Pie Chart -->
+     <h1>Category-wise Expenditure</h1>
+    <canvas id="expensePieChart" width="300" height="300"></canvas>
+    <br><br>
+    <script>
+        // Pass aggregated data from Django context
+        const categories_pie = {{ categories_pie|safe }};
+        const total_expenses_pie = {{ total_expenses_pie|safe }};
+        
+        console.log("Categories for Pie Chart: ", categories_pie);
+        console.log("Total Expenses for Pie Chart: ", total_expenses_pie);
+    
+        // Setup Chart.js for the Pie chart
+        const pieChartCtx = document.getElementById('expensePieChart').getContext('2d');
+    
+        // Create Pie chart
+        new Chart(pieChartCtx, {
+            type: 'doughnut', // Set chart type to pie
+            data: {
+                labels: categories_pie, // Labels for each category
+                datasets: [{
+                    label: 'Expense Categories',
+                    data: total_expenses_pie, // Data values for the pie chart
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top', // Display legend at the top
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                // Get raw value of the slice
+                                let value = tooltipItem.raw;
+                                // Calculate total value of all slices
+                                let total = tooltipItem.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                // Calculate percentage for the current slice
+                                let percentage = ((value / total) * 100).toFixed(1);
+                                // Show percentage and value in tooltip
+                                return `${tooltipItem.label}: ${value} Rs (${percentage}%)`;
+                            }
+                        }
+                    },
+                    datalabels: {
+                        color: '#000',  // Label text color (black)
+                        font: {
+                          weight: 'bold'
+                        },
+                        formatter: (value, context) => {
+                          let total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                          let percentage = ((value / total) * 100).toFixed(1);
+                          return `${percentage}%`;
+                        },
+                        anchor: 'center', // Position in the center of slice
+                        align: 'center'
+                      }
+                }
+            },
+            plugins: [ChartDataLabels] // Include the datalabels plugin
+        });
+        
+    </script>
+    
+{% endblock %}
+    
